@@ -71,6 +71,14 @@ class DataManager:
         finally:
             session.close()
 
+    def get_user_by_id(self, user_id):
+        """Get a user by id (e.g. after selecting from the list)."""
+        session = Session()
+        try:
+            return session.query(User).filter(User.id == user_id).first()
+        finally:
+            session.close()
+
     def get_user_movies(self, user_id):
         """Get a user's movies."""
         session = Session()
