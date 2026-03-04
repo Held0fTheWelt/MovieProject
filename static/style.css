@@ -1,4 +1,4 @@
-/* MoviWeb – Basis-Styles */
+/* MoviWeb – Basis-Styles (single stylesheet in static/) */
 
 :root {
     --bg: #0f0f12;
@@ -56,8 +56,9 @@ body {
     color: var(--text-muted);
 }
 
-/* Main */
-.main {
+/* Main content area (base template: <main class="container">) */
+.main,
+.container {
     flex: 1;
     padding: 1.5rem;
     max-width: 1400px;
