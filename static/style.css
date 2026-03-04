@@ -96,6 +96,22 @@ body {
     margin: 0 auto;
 }
 
+.error-page {
+    text-align: center;
+}
+
+.error-page h1 {
+    margin-top: 0;
+}
+
+.error-page p {
+    margin: 0.5rem 0 1rem 0;
+}
+
+.error-page .btn + .btn {
+    margin-left: 0.5rem;
+}
+
 .card h1 {
     margin-top: 0;
     font-size: 1.5rem;
