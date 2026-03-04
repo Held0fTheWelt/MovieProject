@@ -16,6 +16,12 @@ from data import DataManager, fetch_movie_by_title
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "moviweb-dev-secret")
+
+# Session cookie settings for HTTPS (e.g. PythonAnywhere): set PREFER_HTTPS=1 in env
+if os.environ.get("PREFER_HTTPS", "").strip().lower() in ("1", "true", "yes"):
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
 _db_path = os.environ.get("MOVIWEB_DB") or os.path.join(os.path.dirname(__file__), "data", "moviweb.db")
 if not _db_path.startswith("sqlite:"):
     _db_path = "sqlite:///" + _db_path.replace("\\", "/")
