@@ -36,6 +36,16 @@ with app.app_context():
 data_manager = DataManager()
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template("500.html"), 500
+
+
 @app.route("/")
 def index():
     if session.get("user_id"):
@@ -46,8 +56,12 @@ def index():
 @app.route("/users", methods=["GET"])
 def list_users():
     """List all users (HTML page with user list and add-user form)."""
-    users = data_manager.get_all_users()
-    return render_template("users.html", users=users)
+    try:
+        users = data_manager.get_all_users()
+        return render_template("users.html", users=users)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/users", methods=["POST"])
@@ -57,7 +71,11 @@ def create_user():
     if not name:
         flash("Please enter a name.", "error")
         return redirect(url_for("list_users"))
-    user = data_manager.create_user(name)
+    try:
+        user = data_manager.create_user(name)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
+        return redirect(url_for("list_users"))
     if user is None:
         flash("A user with this name already exists.", "error")
         return redirect(url_for("list_users"))
@@ -68,12 +86,16 @@ def create_user():
 @app.route("/users/<int:user_id>")
 def get_movies(user_id):
     """Show a user's list of favorite movies (task: link from /users)."""
-    user = data_manager.get_user_by_id(user_id)
-    if not user:
-        flash("User not found.", "error")
+    try:
+        user = data_manager.get_user_by_id(user_id)
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("list_users"))
+        movies = data_manager.get_user_movies(user_id)
+        return render_template("movie_list.html", user=user, movies=movies)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
         return redirect(url_for("list_users"))
-    movies = data_manager.get_user_movies(user_id)
-    return render_template("movie_list.html", user=user, movies=movies)
 
 
 @app.route("/user/select", methods=["GET", "POST"])
@@ -86,7 +108,11 @@ def user_select():
             if not name:
                 flash("Please enter a name.", "error")
                 return redirect(url_for("user_select"))
-            user = data_manager.create_user(name)
+            try:
+                user = data_manager.create_user(name)
+            except Exception:
+                flash("A temporary error occurred. Please try again.", "error")
+                return redirect(url_for("user_select"))
             if user is None:
                 flash("A user with this name already exists.", "error")
                 return redirect(url_for("user_select"))
@@ -97,14 +123,22 @@ def user_select():
         if action == "select":
             user_id = request.form.get("user_id", type=int)
             if user_id:
-                user = data_manager.get_user_by_id(user_id)
-                if user:
-                    session["user_id"] = user.id
-                    session["user_name"] = user.name
-                    return redirect(url_for("movie_list"))
+                try:
+                    user = data_manager.get_user_by_id(user_id)
+                    if user:
+                        session["user_id"] = user.id
+                        session["user_name"] = user.name
+                        return redirect(url_for("movie_list"))
+                except Exception:
+                    flash("A temporary error occurred. Please try again.", "error")
+                    return redirect(url_for("user_select"))
             flash("Please select a user.", "error")
-    users = data_manager.get_all_users()
-    return render_template("user_select.html", users=users)
+    try:
+        users = data_manager.get_all_users()
+        return render_template("user_select.html", users=users)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/user/logout")
@@ -119,12 +153,17 @@ def movie_list():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    user = data_manager.get_user_by_id(user_id)
-    if not user:
+    try:
+        user = data_manager.get_user_by_id(user_id)
+        if not user:
+            session.clear()
+            return redirect(url_for("user_select"))
+        movies = data_manager.get_user_movies(user_id)
+        return render_template("movie_list.html", user=user, movies=movies)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
         session.clear()
         return redirect(url_for("user_select"))
-    movies = data_manager.get_user_movies(user_id)
-    return render_template("movie_list.html", user=user, movies=movies)
 
 
 @app.route("/movies/add", methods=["GET", "POST"])
@@ -133,7 +172,12 @@ def movie_add():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    user = data_manager.get_user_by_id(user_id)
+    try:
+        user = data_manager.get_user_by_id(user_id)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
+        session.clear()
+        return redirect(url_for("user_select"))
     if not user:
         session.clear()
         return redirect(url_for("user_select"))
@@ -144,20 +188,24 @@ def movie_add():
             flash("Please enter a movie name.", "error")
             return render_template("movie_add.html", user=user)
         info = fetch_movie_by_title(name)
-        if info:
-            data_manager.add_movie(
-                user_id=user_id,
-                title=info["title"],
-                year=info.get("year"),
-                director=info.get("director"),
-                poster_url=info.get("poster_url"),
-                from_omdb=True,
-            )
-            flash(f'Movie "{info["title"]}" added with details from OMDb.', "success")
-        else:
-            data_manager.add_movie(user_id=user_id, title=name, from_omdb=False)
-            flash(f'Movie "{name}" added (OMDb did not return details).', "info")
-        return redirect(url_for("movie_list"))
+        try:
+            if info:
+                data_manager.add_movie(
+                    user_id=user_id,
+                    title=info["title"],
+                    year=info.get("year"),
+                    director=info.get("director"),
+                    poster_url=info.get("poster_url"),
+                    from_omdb=True,
+                )
+                flash(f'Movie "{info["title"]}" added with details from OMDb.', "success")
+            else:
+                data_manager.add_movie(user_id=user_id, title=name, from_omdb=False)
+                flash(f'Movie "{name}" added (OMDb did not return details).', "info")
+            return redirect(url_for("movie_list"))
+        except Exception:
+            flash("A temporary error occurred. Please try again.", "error")
+            return render_template("movie_add.html", user=user)
     return render_template("movie_add.html", user=user)
 
 
@@ -167,17 +215,25 @@ def movie_edit(movie_id):
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    movie = data_manager.get_movie_by_id(movie_id)
-    if not movie or movie.user_id != user_id:
-        flash("Movie not found or access denied.", "error")
+    try:
+        movie = data_manager.get_movie_by_id(movie_id)
+        if not movie or movie.user_id != user_id:
+            flash("Movie not found or access denied.", "error")
+            return redirect(url_for("movie_list"))
+        user = data_manager.get_user_by_id(user_id)
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
         return redirect(url_for("movie_list"))
-    user = data_manager.get_user_by_id(user_id)
 
     if request.method == "POST":
         note = request.form.get("note", "").strip() or None
-        data_manager.update_movie(movie_id, note=note)
-        flash("Movie updated.", "success")
-        return redirect(url_for("movie_list"))
+        try:
+            data_manager.update_movie(movie_id, note=note)
+            flash("Movie updated.", "success")
+            return redirect(url_for("movie_list"))
+        except Exception:
+            flash("A temporary error occurred. Please try again.", "error")
+            return render_template("movie_edit.html", user=user, movie=movie)
     return render_template("movie_edit.html", user=user, movie=movie)
 
 
@@ -187,13 +243,17 @@ def movie_delete(movie_id):
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    movie = data_manager.get_movie_by_id(movie_id)
-    if not movie or movie.user_id != user_id:
-        flash("Movie not found or access denied.", "error")
+    try:
+        movie = data_manager.get_movie_by_id(movie_id)
+        if not movie or movie.user_id != user_id:
+            flash("Movie not found or access denied.", "error")
+            return redirect(url_for("movie_list"))
+        data_manager.delete_movie(movie_id)
+        flash("Movie removed from your list.", "success")
         return redirect(url_for("movie_list"))
-    data_manager.delete_movie(movie_id)
-    flash("Movie removed from your list.", "success")
-    return redirect(url_for("movie_list"))
+    except Exception:
+        flash("A temporary error occurred. Please try again.", "error")
+        return redirect(url_for("movie_list"))
 
 
 if __name__ == "__main__":
