@@ -34,6 +34,9 @@ with app.app_context():
         if "rating" not in cols:
             db.session.execute(text("ALTER TABLE movies ADD COLUMN rating REAL"))
             db.session.commit()
+        if "imdb_id" not in cols:
+            db.session.execute(text("ALTER TABLE movies ADD COLUMN imdb_id VARCHAR(20)"))
+            db.session.commit()
     except Exception:
         db.session.rollback()
 data_manager = DataManager()
@@ -199,6 +202,7 @@ def movie_add():
                     director=info.get("director"),
                     poster_url=info.get("poster_url"),
                     rating=info.get("rating"),
+                    imdb_id=info.get("imdb_id"),
                     from_omdb=True,
                 )
                 flash(f'Movie "{info["title"]}" added with details from OMDb.', "success")

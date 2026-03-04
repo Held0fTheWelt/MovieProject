@@ -38,7 +38,7 @@ class DataManager:
         """Get a user's movies."""
         return db.session.query(Movie).filter(Movie.user_id == user_id).order_by(Movie.title).all()
 
-    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None, rating=None, from_omdb=False):
+    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None, rating=None, imdb_id=None, from_omdb=False):
         """Add a movie to a user's list (e.g. after fetching from OMDb)."""
         movie = Movie(
             user_id=user_id,
@@ -48,6 +48,7 @@ class DataManager:
             poster_url=poster_url,
             note=note,
             rating=rating,
+            imdb_id=imdb_id,
             from_omdb=from_omdb,
         )
         db.session.add(movie)
@@ -68,7 +69,7 @@ class DataManager:
             return True
         return False
 
-    def update_movie(self, movie_id, title=None, year=None, director=None, poster_url=None, note=None, rating=None):
+    def update_movie(self, movie_id, title=None, year=None, director=None, poster_url=None, note=None, rating=None, imdb_id=None):
         """Update a user's movie. Only provided fields are changed."""
         movie = db.session.query(Movie).filter(Movie.id == movie_id).first()
         if not movie:
@@ -85,6 +86,8 @@ class DataManager:
             movie.note = note
         if rating is not None:
             movie.rating = rating
+        if imdb_id is not None:
+            movie.imdb_id = imdb_id
         db.session.commit()
         db.session.refresh(movie)
         return movie

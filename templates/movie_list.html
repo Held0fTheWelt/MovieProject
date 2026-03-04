@@ -10,10 +10,16 @@
 <ul class="movie-grid">
     {% for m in movies %}
     <li class="movie-card">
+        {% if m.imdb_id %}
+        <a href="https://www.imdb.com/title/{{ m.imdb_id }}/" target="_blank" rel="noopener noreferrer" class="movie-poster-link" title="View on IMDb">
+        {% endif %}
         {% if m.poster_url %}
         <img src="{{ m.poster_url }}" alt="{{ m.title }}" class="movie-poster" loading="lazy">
         {% else %}
         <div class="movie-poster movie-poster-placeholder">No poster</div>
+        {% endif %}
+        {% if m.imdb_id %}
+        </a>
         {% endif %}
         <div class="movie-info">
             <h3 class="movie-title">{{ m.title }}</h3>

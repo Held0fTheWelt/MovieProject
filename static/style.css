@@ -316,11 +316,25 @@ body {
     flex-direction: column;
 }
 
+.movie-poster-link {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2/3;
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.movie-poster-link:hover .movie-poster,
+.movie-poster-link:focus .movie-poster {
+    opacity: 0.9;
+}
+
 .movie-poster {
     width: 100%;
     aspect-ratio: 2/3;
     object-fit: cover;
     background: var(--bg);
+    transition: opacity 0.2s;
 }
 
 .movie-poster-placeholder {
