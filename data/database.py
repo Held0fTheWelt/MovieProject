@@ -106,6 +106,27 @@ class DataManager:
         finally:
             session.close()
 
+    def get_movie_by_id(self, movie_id):
+        """Get a single movie by id."""
+        session = Session()
+        try:
+            return session.query(Movie).filter(Movie.id == movie_id).first()
+        finally:
+            session.close()
+
+    def delete_movie(self, movie_id):
+        """Remove a movie from the database."""
+        session = Session()
+        try:
+            movie = session.query(Movie).filter(Movie.id == movie_id).first()
+            if movie:
+                session.delete(movie)
+                session.commit()
+                return True
+            return False
+        finally:
+            session.close()
+
     def update_movie(self, movie_id, title=None, year=None, director=None, poster_url=None, note=None):
         """Update a user's movie. Only provided fields are changed."""
         session = Session()

@@ -109,5 +109,20 @@ def movie_add():
     return render_template("movie_add.html", user=user)
 
 
+@app.route("/movies/<int:movie_id>/delete", methods=["POST"])
+def movie_delete(movie_id):
+    """Remove a movie from the user's list."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("user_select"))
+    movie = db.get_movie_by_id(movie_id)
+    if not movie or movie.user_id != user_id:
+        flash("Movie not found or access denied.", "error")
+        return redirect(url_for("movie_list"))
+    db.delete_movie(movie_id)
+    flash("Movie removed from your list.", "success")
+    return redirect(url_for("movie_list"))
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
