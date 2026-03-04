@@ -43,6 +43,13 @@ def index():
     return redirect(url_for("user_select"))
 
 
+@app.route("/users")
+def list_users():
+    """List all users (temporarily as string; for HTML use /user/select)."""
+    users = data_manager.get_all_users()
+    return str(users)
+
+
 @app.route("/user/select", methods=["GET", "POST"])
 def user_select():
     """Log in: select identity from list of users (or create new user)."""
