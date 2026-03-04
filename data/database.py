@@ -54,6 +54,23 @@ class DataManager:
         finally:
             session.close()
 
+    def create_user(self, name):
+        """Create a new user (identity). Returns the user or None if name already exists."""
+        session = Session()
+        try:
+            name = (name or "").strip()
+            if not name:
+                return None
+            if session.query(User).filter(User.name == name).first():
+                return None
+            user = User(name=name)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return user
+        finally:
+            session.close()
+
     def get_user_movies(self, user_id):
         """Get a user's movies."""
         session = Session()
