@@ -1,42 +1,40 @@
 """
 Data Management: one Python class for all database operations.
 
-Required (per spec):
-  - getting a list of all users
-  - getting a user's movies
-  - updating a user's movie
+Uses SQLAlchemy ORM; models are defined in models.py.
+Required (per spec): get list of all users, get a user's movies, update a user's movie.
 """
 
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
-Base = declarative_base()
+from data.models import Base, User, Movie
+
 _data_dir = os.path.dirname(os.path.abspath(__file__))
 _db_path = os.environ.get("MOVIWEB_DB", os.path.join(_data_dir, "moviweb.db"))
 engine = create_engine(f"sqlite:///{_db_path.replace(chr(92), '/')}", echo=False)
 
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False, unique=True)
-    movies = relationship("Movie", back_populates="user", cascade="all, delete-orphan")
-
-
-class Movie(Base):
-    __tablename__ = "movies"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    title = Column(String(200), nullable=False)
-    year = Column(String(20), nullable=True)
-    director = Column(String(200), nullable=True)
-    poster_url = Column(String(500), nullable=True)
-    note = Column(Text, nullable=True)
-    user = relationship("User", back_populates="movies")
-
-
 Base.metadata.create_all(engine)
+
+
+def _ensure_from_omdb_column():
+    """Add from_omdb column if the movies table existed without it."""
+    with engine.connect() as conn:
+        try:
+            r = conn.execute(text("PRAGMA table_info(movies)"))
+            cols = {row[1] for row in r.fetchall()}
+        except Exception:
+            return
+        if "from_omdb" not in cols:
+            try:
+                conn.execute(text("ALTER TABLE movies ADD COLUMN from_omdb INTEGER DEFAULT 0"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
+
+_ensure_from_omdb_column()
 Session = sessionmaker(bind=engine)
 
 
@@ -87,7 +85,7 @@ class DataManager:
         finally:
             session.close()
 
-    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None):
+    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None, from_omdb=False):
         """Add a movie to a user's list (e.g. after fetching from OMDb)."""
         session = Session()
         try:
@@ -98,6 +96,7 @@ class DataManager:
                 director=director,
                 poster_url=poster_url,
                 note=note,
+                from_omdb=from_omdb,
             )
             session.add(movie)
             session.commit()
