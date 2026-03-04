@@ -43,11 +43,37 @@ def index():
     return redirect(url_for("user_select"))
 
 
-@app.route("/users")
+@app.route("/users", methods=["GET"])
 def list_users():
-    """List all users (temporarily as string; for HTML use /user/select)."""
+    """List all users (HTML page with user list and add-user form)."""
     users = data_manager.get_all_users()
-    return str(users)
+    return render_template("users.html", users=users)
+
+
+@app.route("/users", methods=["POST"])
+def create_user():
+    """Create a new user (from task form on /users page)."""
+    name = request.form.get("name", "").strip()
+    if not name:
+        flash("Please enter a name.", "error")
+        return redirect(url_for("list_users"))
+    user = data_manager.create_user(name)
+    if user is None:
+        flash("A user with this name already exists.", "error")
+        return redirect(url_for("list_users"))
+    flash(f"User \"{user.name}\" created.", "success")
+    return redirect(url_for("list_users"))
+
+
+@app.route("/users/<int:user_id>")
+def get_movies(user_id):
+    """Show a user's list of favorite movies (task: link from /users)."""
+    user = data_manager.get_user_by_id(user_id)
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for("list_users"))
+    movies = data_manager.get_user_movies(user_id)
+    return render_template("movie_list.html", user=user, movies=movies)
 
 
 @app.route("/user/select", methods=["GET", "POST"])
