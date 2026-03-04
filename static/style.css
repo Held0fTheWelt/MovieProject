@@ -360,6 +360,15 @@ body {
     font-size: 0.9rem;
     font-style: italic;
     color: var(--text-muted);
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-height 0.25s ease;
+}
+
+.movie-card:hover .movie-note-text {
+    opacity: 1;
+    max-height: 12rem;
 }
 
 .movie-plot {
