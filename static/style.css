@@ -41,14 +41,37 @@ body {
 }
 
 .logo {
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--primary);
+    display: flex;
+    align-items: center;
     text-decoration: none;
+    flex-shrink: 0;
+    line-height: 0;
 }
 
-.logo:hover {
+.logo-img {
+    display: block;
+    max-height: 3.5rem;
+    height: auto;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.logo-fallback {
+    display: none;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    color: var(--primary);
+}
+
+.logo:hover .logo-fallback {
     color: var(--primary-hover);
+}
+
+.logo:hover .logo-img {
+    opacity: 0.9;
 }
 
 .user-info {
@@ -434,4 +457,10 @@ body {
 
 .footer p {
     margin: 0;
+}
+
+.footer-brand {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1rem;
 }
