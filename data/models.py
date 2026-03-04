@@ -1,34 +1,34 @@
 """
 SQLAlchemy ORM models for the database.
 
+Flask has its own SQLAlchemy package for using SQLAlchemy within a Flask application.
 ORM (object-relational mapping): work with Python objects that map to database
 tables and have in-built methods to communicate with the database.
 """
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship
+from flask_sqlalchemy import SQLAlchemy
 
-Base = declarative_base()
+db = SQLAlchemy()
 
 
-class User(Base):
+class User(db.Model):
     """At least: a unique identifier (id) and a name (name)."""
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # unique identifier
-    name = Column(String(100), nullable=False, unique=True)  # name
-    movies = relationship("Movie", back_populates="user", cascade="all, delete-orphan")
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # unique identifier
+    name = db.Column(db.String(100), nullable=False, unique=True)  # name
+    movies = db.relationship("Movie", back_populates="user", cascade="all, delete-orphan")
 
 
-class Movie(Base):
+class Movie(db.Model):
     __tablename__ = "movies"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # foreign key to User
-    title = Column(String(200), nullable=False)
-    year = Column(String(20), nullable=True)
-    director = Column(String(200), nullable=True)
-    poster_url = Column(String(500), nullable=True)
-    note = Column(Text, nullable=True)
-    from_omdb = Column(Boolean, default=False, nullable=False)
-    user = relationship("User", back_populates="movies")
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # foreign key to User
+    title = db.Column(db.String(200), nullable=False)
+    year = db.Column(db.String(20), nullable=True)
+    director = db.Column(db.String(200), nullable=True)
+    poster_url = db.Column(db.String(500), nullable=True)
+    note = db.Column(db.Text, nullable=True)
+    from_omdb = db.Column(db.Boolean, default=False, nullable=False)
+    user = db.relationship("User", back_populates="movies")
