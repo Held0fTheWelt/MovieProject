@@ -11,11 +11,29 @@ Then open: http://127.0.0.1:5000
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 
+from data.models import db
 from data import DataManager, fetch_movie_by_title
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "moviweb-dev-secret")
-db = DataManager()
+_db_path = os.environ.get("MOVIWEB_DB") or os.path.join(os.path.dirname(__file__), "data", "moviweb.db")
+if not _db_path.startswith("sqlite:"):
+    _db_path = "sqlite:///" + _db_path.replace("\\", "/")
+app.config["SQLALCHEMY_DATABASE_URI"] = _db_path
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+    # Ensure from_omdb column exists (migration for existing DBs)
+    from sqlalchemy import text
+    try:
+        r = db.session.execute(text("PRAGMA table_info(movies)")).fetchall()
+        cols = {row[1] for row in r}
+        if "from_omdb" not in cols:
+            db.session.execute(text("ALTER TABLE movies ADD COLUMN from_omdb INTEGER DEFAULT 0"))
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+data_manager = DataManager()
 
 
 @app.route("/")
@@ -35,7 +53,7 @@ def user_select():
             if not name:
                 flash("Please enter a name.", "error")
                 return redirect(url_for("user_select"))
-            user = db.create_user(name)
+            user = data_manager.create_user(name)
             if user is None:
                 flash("A user with this name already exists.", "error")
                 return redirect(url_for("user_select"))
@@ -46,13 +64,13 @@ def user_select():
         if action == "select":
             user_id = request.form.get("user_id", type=int)
             if user_id:
-                user = db.get_user_by_id(user_id)
+                user = data_manager.get_user_by_id(user_id)
                 if user:
                     session["user_id"] = user.id
                     session["user_name"] = user.name
                     return redirect(url_for("movie_list"))
             flash("Please select a user.", "error")
-    users = db.get_all_users()
+    users = data_manager.get_all_users()
     return render_template("user_select.html", users=users)
 
 
@@ -68,11 +86,11 @@ def movie_list():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    user = db.get_user_by_id(user_id)
+    user = data_manager.get_user_by_id(user_id)
     if not user:
         session.clear()
         return redirect(url_for("user_select"))
-    movies = db.get_user_movies(user_id)
+    movies = data_manager.get_user_movies(user_id)
     return render_template("movie_list.html", user=user, movies=movies)
 
 
@@ -82,7 +100,7 @@ def movie_add():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    user = db.get_user_by_id(user_id)
+    user = data_manager.get_user_by_id(user_id)
     if not user:
         session.clear()
         return redirect(url_for("user_select"))
@@ -94,7 +112,7 @@ def movie_add():
             return render_template("movie_add.html", user=user)
         info = fetch_movie_by_title(name)
         if info:
-            db.add_movie(
+            data_manager.add_movie(
                 user_id=user_id,
                 title=info["title"],
                 year=info.get("year"),
@@ -104,7 +122,7 @@ def movie_add():
             )
             flash(f'Movie "{info["title"]}" added with details from OMDb.', "success")
         else:
-            db.add_movie(user_id=user_id, title=name, from_omdb=False)
+            data_manager.add_movie(user_id=user_id, title=name, from_omdb=False)
             flash(f'Movie "{name}" added (OMDb did not return details).', "info")
         return redirect(url_for("movie_list"))
     return render_template("movie_add.html", user=user)
@@ -116,15 +134,15 @@ def movie_edit(movie_id):
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    movie = db.get_movie_by_id(movie_id)
+    movie = data_manager.get_movie_by_id(movie_id)
     if not movie or movie.user_id != user_id:
         flash("Movie not found or access denied.", "error")
         return redirect(url_for("movie_list"))
-    user = db.get_user_by_id(user_id)
+    user = data_manager.get_user_by_id(user_id)
 
     if request.method == "POST":
         note = request.form.get("note", "").strip() or None
-        db.update_movie(movie_id, note=note)
+        data_manager.update_movie(movie_id, note=note)
         flash("Movie updated.", "success")
         return redirect(url_for("movie_list"))
     return render_template("movie_edit.html", user=user, movie=movie)
@@ -136,11 +154,11 @@ def movie_delete(movie_id):
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("user_select"))
-    movie = db.get_movie_by_id(movie_id)
+    movie = data_manager.get_movie_by_id(movie_id)
     if not movie or movie.user_id != user_id:
         flash("Movie not found or access denied.", "error")
         return redirect(url_for("movie_list"))
-    db.delete_movie(movie_id)
+    data_manager.delete_movie(movie_id)
     flash("Movie removed from your list.", "success")
     return redirect(url_for("movie_list"))
 
