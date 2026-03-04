@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MoviWeb{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="header">
+        <a href="{{ url_for('index') }}" class="logo">MoviWeb</a>
+        {% if session.get('user_name') %}
+        <span class="user-info">{{ session.user_name }}</span>
+        <a href="{{ url_for('user_logout') }}" class="btn btn-outline">Log out</a>
+        {% endif %}
+    </header>
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+            <li class="flash flash-{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+        <p>MoviWeb – Your movie list</p>
+    </footer>
+</body>
+</html>

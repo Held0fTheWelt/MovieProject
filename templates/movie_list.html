@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}My movies – MoviWeb{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>My movies</h1>
+    <a href="{{ url_for('movie_add') }}" class="btn btn-primary">Add movie</a>
+</div>
+
+{% if movies %}
+<ul class="movie-grid">
+    {% for m in movies %}
+    <li class="movie-card">
+        {% if m.poster_url %}
+        <img src="{{ m.poster_url }}" alt="{{ m.title }}" class="movie-poster" loading="lazy">
+        {% else %}
+        <div class="movie-poster movie-poster-placeholder">No poster</div>
+        {% endif %}
+        <div class="movie-info">
+            <h3 class="movie-title">{{ m.title }}</h3>
+            {% if m.rating is not none and m.rating %}<p class="movie-rating">★ {{ "%.1f"|format(m.rating) }}</p>{% endif %}
+            {% if m.year %}<p class="movie-meta">Year: {{ m.year }}</p>{% endif %}
+            {% if m.director %}<p class="movie-meta">Director: {{ m.director }}</p>{% endif %}
+            {% if m.genre %}<p class="movie-meta">Genre: {{ m.genre }}</p>{% endif %}
+            {% if m.note %}<p class="movie-note-text">{{ m.note }}</p>{% endif %}
+            {% if m.plot %}<p class="movie-plot">{{ m.plot }}</p>{% endif %}
+            <div class="movie-actions">
+                <a href="{{ url_for('movie_edit', movie_id=m.id) }}" class="btn btn-small">Edit</a>
+                <form method="post" action="{{ url_for('movie_delete', movie_id=m.id) }}" class="inline-form" onsubmit="return confirm('Really delete this movie?');">
+                    <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">No movies in your list yet. <a href="{{ url_for('movie_add') }}">Add your first movie</a></p>
+{% endif %}
+{% endblock %}

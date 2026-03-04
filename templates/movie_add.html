@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Add movie – MoviWeb{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Add movie</h1>
+    <p>Enter the movie title. Additional info (year, director, genre, plot) is loaded from OMDb if an API key is set.</p>
+    <form method="post" action="{{ url_for('movie_add') }}" class="form">
+        <div class="form-group">
+            <label for="title">Movie title</label>
+            <input type="text" name="title" id="title" placeholder="e.g. The Batman" required autofocus>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add</button>
+            <a href="{{ url_for('movie_list') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
