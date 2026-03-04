@@ -60,7 +60,7 @@ body {
 .main {
     flex: 1;
     padding: 1.5rem;
-    max-width: 960px;
+    max-width: 1400px;
     margin: 0 auto;
     width: 100%;
 }
@@ -226,13 +226,13 @@ body {
     font-size: 1.5rem;
 }
 
-/* Movie grid */
+/* Movie grid – wide layout, 4–5 movies per row */
 .movie-grid {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1.25rem;
 }
 
