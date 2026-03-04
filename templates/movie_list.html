@@ -17,6 +17,7 @@
         {% endif %}
         <div class="movie-info">
             <h3 class="movie-title">{{ m.title }}</h3>
+            {% if m.rating and m.rating > 0 %}<p class="movie-rating">★ {{ "%.1f"|format(m.rating) }}/10</p>{% endif %}
             {% if m.year %}<p class="movie-meta">Year: {{ m.year }}</p>{% endif %}
             {% if m.director %}<p class="movie-meta">Director: {{ m.director }}</p>{% endif %}
             {% if m.note %}<p class="movie-note-text">{{ m.note }}</p>{% endif %}

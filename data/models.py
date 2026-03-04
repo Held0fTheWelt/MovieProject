@@ -31,6 +31,7 @@ class Movie(db.Model):
     director = db.Column(db.String(200), nullable=True)
     poster_url = db.Column(db.String(500), nullable=True)
     note = db.Column(db.Text, nullable=True)
+    rating = db.Column(db.Float, nullable=True)  # e.g. IMDb 0–10
     from_omdb = db.Column(db.Boolean, default=False, nullable=False)
 
     # Link Movie to User
