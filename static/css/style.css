@@ -251,6 +251,12 @@ body {
     font-size: 1.5rem;
 }
 
+.page-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
 /* Movie grid – wide layout, 4–5 movies per row */
 .movie-grid {
     list-style: none;
