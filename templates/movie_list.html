@@ -20,9 +20,12 @@
             {% if m.year %}<p class="movie-meta">Year: {{ m.year }}</p>{% endif %}
             {% if m.director %}<p class="movie-meta">Director: {{ m.director }}</p>{% endif %}
             {% if m.note %}<p class="movie-note-text">{{ m.note }}</p>{% endif %}
-            <form method="post" action="{{ url_for('movie_delete', movie_id=m.id) }}" class="movie-actions" onsubmit="return confirm('Remove this movie from your list?');">
-                <button type="submit" class="btn btn-small btn-danger">Delete</button>
-            </form>
+            <div class="movie-actions">
+                <a href="{{ url_for('movie_edit', movie_id=m.id) }}" class="btn btn-small btn-primary">Edit</a>
+                <form method="post" action="{{ url_for('movie_delete', movie_id=m.id) }}" class="inline-form" onsubmit="return confirm('Remove this movie from your list?');">
+                    <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                </form>
+            </div>
         </div>
     </li>
     {% endfor %}

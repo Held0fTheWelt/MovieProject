@@ -100,13 +100,34 @@ def movie_add():
                 year=info.get("year"),
                 director=info.get("director"),
                 poster_url=info.get("poster_url"),
+                from_omdb=True,
             )
             flash(f'Movie "{info["title"]}" added with details from OMDb.', "success")
         else:
-            db.add_movie(user_id=user_id, title=name)
+            db.add_movie(user_id=user_id, title=name, from_omdb=False)
             flash(f'Movie "{name}" added (OMDb did not return details).', "info")
         return redirect(url_for("movie_list"))
     return render_template("movie_add.html", user=user)
+
+
+@app.route("/movies/<int:movie_id>/edit", methods=["GET", "POST"])
+def movie_edit(movie_id):
+    """Update a movie: modify the information of a movie from the user's list."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("user_select"))
+    movie = db.get_movie_by_id(movie_id)
+    if not movie or movie.user_id != user_id:
+        flash("Movie not found or access denied.", "error")
+        return redirect(url_for("movie_list"))
+    user = db.get_user_by_id(user_id)
+
+    if request.method == "POST":
+        note = request.form.get("note", "").strip() or None
+        db.update_movie(movie_id, note=note)
+        flash("Movie updated.", "success")
+        return redirect(url_for("movie_list"))
+    return render_template("movie_edit.html", user=user, movie=movie)
 
 
 @app.route("/movies/<int:movie_id>/delete", methods=["POST"])
