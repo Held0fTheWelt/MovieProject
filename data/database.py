@@ -87,6 +87,25 @@ class DataManager:
         finally:
             session.close()
 
+    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None):
+        """Add a movie to a user's list (e.g. after fetching from OMDb)."""
+        session = Session()
+        try:
+            movie = Movie(
+                user_id=user_id,
+                title=title.strip(),
+                year=year,
+                director=director,
+                poster_url=poster_url,
+                note=note,
+            )
+            session.add(movie)
+            session.commit()
+            session.refresh(movie)
+            return movie
+        finally:
+            session.close()
+
     def update_movie(self, movie_id, title=None, year=None, director=None, poster_url=None, note=None):
         """Update a user's movie. Only provided fields are changed."""
         session = Session()
