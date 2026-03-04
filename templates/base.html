@@ -8,7 +8,10 @@
 </head>
 <body>
     <header class="header">
-        <a href="{{ url_for('index') }}" class="logo">MoviWeb</a>
+        <a href="{{ url_for('index') }}" class="logo" aria-label="MoviWeb">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="MoviWeb" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <span class="logo-fallback">MoviWeb</span>
+        </a>
         <a href="{{ url_for('list_users') }}" class="btn btn-outline">Users</a>
         {% if session.get('user_name') %}
         <span class="user-info">{{ session.user_name }}</span>
@@ -28,7 +31,7 @@
         {% block content %}{% endblock %}
     </main>
     <footer class="footer">
-        <p>MoviWeb – Your movie list</p>
+        <p><span class="footer-brand">MoviWeb</span> – Your movie list - by Yves Tanas</p>
     </footer>
 </body>
 </html>
