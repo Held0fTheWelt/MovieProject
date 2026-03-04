@@ -51,9 +51,8 @@ def internal_error(e):
 
 @app.route("/")
 def index():
-    if session.get("user_id"):
-        return redirect(url_for("movie_list"))
-    return redirect(url_for("user_select"))
+    users = data_manager.get_all_users()
+    return render_template("users.html", users=users)
 
 
 @app.route("/users", methods=["GET"])
