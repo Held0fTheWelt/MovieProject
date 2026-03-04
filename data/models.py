@@ -19,6 +19,13 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     movies = db.relationship("Movie", back_populates="user", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"<User id={self.id} name={self.name!r}>"
+
+    def display_name(self):
+        """Return the user's name for display."""
+        return self.name
+
 
 class Movie(db.Model):
     """Movie model: define all properties and link to User via user_id."""
@@ -38,3 +45,10 @@ class Movie(db.Model):
     # Link Movie to User
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = db.relationship("User", back_populates="movies")
+
+    def __repr__(self):
+        return f"<Movie id={self.id} title={self.title!r}>"
+
+    def display_title(self):
+        """Return the movie title for display."""
+        return self.title

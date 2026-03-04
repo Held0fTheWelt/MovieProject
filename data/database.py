@@ -38,18 +38,23 @@ class DataManager:
         """Get a user's movies."""
         return db.session.query(Movie).filter(Movie.user_id == user_id).order_by(Movie.title).all()
 
-    def add_movie(self, user_id, title, year=None, director=None, poster_url=None, note=None, rating=None, imdb_id=None, from_omdb=False):
-        """Add a movie to a user's list (e.g. after fetching from OMDb)."""
+    def add_movie(self, user_id, title, details=None):
+        """Add a movie to a user's list (e.g. after fetching from OMDb).
+
+        details: optional dict with year, director, poster_url, note, rating,
+                 imdb_id, from_omdb (default False).
+        """
+        details = details or {}
         movie = Movie(
             user_id=user_id,
             title=title.strip(),
-            year=year,
-            director=director,
-            poster_url=poster_url,
-            note=note,
-            rating=rating,
-            imdb_id=imdb_id,
-            from_omdb=from_omdb,
+            year=details.get("year"),
+            director=details.get("director"),
+            poster_url=details.get("poster_url"),
+            note=details.get("note"),
+            rating=details.get("rating"),
+            imdb_id=details.get("imdb_id"),
+            from_omdb=details.get("from_omdb", False),
         )
         db.session.add(movie)
         db.session.commit()
@@ -69,25 +74,14 @@ class DataManager:
             return True
         return False
 
-    def update_movie(self, movie_id, title=None, year=None, director=None, poster_url=None, note=None, rating=None, imdb_id=None):
-        """Update a user's movie. Only provided fields are changed."""
+    def update_movie(self, movie_id, updates):
+        """Update a user's movie. updates is a dict of field names to values."""
         movie = db.session.query(Movie).filter(Movie.id == movie_id).first()
         if not movie:
             return None
-        if title is not None:
-            movie.title = title
-        if year is not None:
-            movie.year = year
-        if director is not None:
-            movie.director = director
-        if poster_url is not None:
-            movie.poster_url = poster_url
-        if note is not None:
-            movie.note = note
-        if rating is not None:
-            movie.rating = rating
-        if imdb_id is not None:
-            movie.imdb_id = imdb_id
+        for key, value in updates.items():
+            if hasattr(movie, key):
+                setattr(movie, key, value)
         db.session.commit()
         db.session.refresh(movie)
         return movie

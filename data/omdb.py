@@ -14,7 +14,10 @@ except ImportError:
     pass
 
 # Key from .env / environment: OMDB_API_KEY or OMDB_APY_KEY (MoviesApp style)
-OMDB_API_KEY = os.environ.get("OMDB_API_KEY", "").strip() or os.environ.get("OMDB_APY_KEY", "").strip()
+OMDB_API_KEY = (
+    os.environ.get("OMDB_API_KEY", "").strip()
+    or os.environ.get("OMDB_APY_KEY", "").strip()
+)
 
 OMDB_URL = "https://www.omdbapi.com/"
 
@@ -56,5 +59,5 @@ def fetch_movie_by_title(title):
             "imdb_id": data.get("imdbID"),
             "poster_url": raw_poster if raw_poster and str(raw_poster) != "N/A" else None,
         }
-    except Exception:
+    except (requests.RequestException, ValueError, TypeError, KeyError):
         return None
