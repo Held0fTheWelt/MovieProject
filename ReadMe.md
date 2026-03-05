@@ -2,6 +2,11 @@
 
 A simple Flask app to manage users and their favorite movie lists. Movie data can be fetched from the OMDb API.
 
+# Running Instance
+
+This project does have a running instance (for now) at:
+https://held0fthewelt.pythonanywhere.com/
+
 ## Features
 
 - **Users**: Create and select a user identity; view a list of all users.
